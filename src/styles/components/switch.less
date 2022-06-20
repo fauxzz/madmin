@@ -1,0 +1,61 @@
+.manda2_switch_container {
+    padding: 20px 0;
+    width: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    .manda2_switch_node {
+        position: relative;
+        width: 448px;
+        display: flex;
+        height: 46px;
+        align-items: center;
+        background: #FA8B20;
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        .manda2_switch_text {
+            width: 100%;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            // left: 0;
+            // right: 0;
+            .manda2_switch {
+                // padding: 0 30px;
+                width: 100%;
+                cursor: pointer;
+                text-align: center;
+                span {
+                    text-align: center;
+                    color: #333333;
+                    font-weight: 500;
+                    font-size: 16px;
+                    line-height: 30px;
+                    padding-left: 20px;
+                    padding-right: 20px;
+                }
+            }
+        }
+        // &::before {
+        //     content: '';
+        //     display: block;
+        //     position: absolute;
+        //     background: #fff;
+        //     width: 100px;
+        //     height: 40px;
+        // }
+
+        .manda2_switch_select {
+            transition: all ease-in-out 200ms;
+            position: absolute;
+            border-radius: 5px;
+            background: #fff;
+            left: 2.5%;
+            width: 45%;
+            height: 34px;
+            z-index: 0;
+        }
+    }
+}
