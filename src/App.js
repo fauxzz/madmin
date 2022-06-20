@@ -10,18 +10,18 @@ import { getStorage } from './tools/storage';
 import { USER_DATA } from './tools/constants';
 
 function App() {
-  // const {auth, setAuth} = useAuth()
-  // useEffect(() => {
-  //   const user = getStorage(USER_DATA);
-  //   if (user !== null) setAuth(user) 
-  //   console.log(auth)
+  const {auth, setAuth} = useAuth()
+  useEffect(() => {
+    const user = getStorage(USER_DATA);
+    if (user !== null) setAuth(user) 
+    console.log(auth)
     
-  // },[])
+  },[])
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" />} />
-      {/* <Route path="/" element={<Navigate to={auth !== null ? "/app/categories-subcategories#category" : "/login"} />} /> */}
+      {/* <Route path="/" element={<Navigate to="/login" />} /> */}
+      <Route path="/" element={<Navigate to={auth !== null ? "/app/categories-subcategories#category" : "/login"} />} />
       <Route path="/login" element={<SignIn />} />
       <Route path="/app/*" element={<Panel />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

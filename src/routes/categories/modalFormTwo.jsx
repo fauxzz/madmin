@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { DeleteOutlined, PlusCircleFilled } from '@ant-design/icons';
 import { Button, Col, Form, Image, Input, message, Modal, Radio, Row, Typography } from 'antd';
 import { get, headerBearer, headerBearerFormData, postFormData } from '../../tools/api';
@@ -6,6 +6,7 @@ import { baseUri } from '../../tools/constants';
 import { checkImage } from '../../tools/imageTool';
 import removeItem from "../../assets/removeitem.svg";
 import SelectCategories from '../../components/FormSelectCategory';
+import { CategoriesContext } from '.';
 
 const {Title, Text} = Typography;
 // const {Option} = Select;
@@ -15,107 +16,21 @@ const optionsWithDisabled = [
     { label: 'Oculto', value: false },
   ];
 
-const ModalFormTwo = ({visible, onCancel, save, record}) => {
-    const [form] = Form.useForm();
-    const [image, setImage] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [visiblem, setVisiblem] = useState(false);
-    // const [category, setCategory] = useState(0);
-    // const [categories, setCategories] = useState([]);
-
-    useEffect(() => {
-        initModal();
-        return () => {
-            form.resetFields();
-            setImage(null);
-            // setCategory("")
-        }
-    }, [record]);
-
-    const initModal = async () => {
-        if(record !== null) {
-            form.setFieldsValue(record);
-            setImage({file: null, fileUri: `${baseUri}/public/${record.Image}`});
-        } else {
-            form.resetFields();
-            setImage(null);
-        }
-    }
-
-    // preview image
-    const selectedImage = (values) => {
-        const file = values.target.files[0] // file
-        const checki = checkImage(file);
-        // check image
-        if(!checki.success) return message.info(checki.error);
-
-        let reader = new FileReader();
-
-        reader.readAsDataURL(file);
-        reader.onload = function () {
-            setImage({file, fileUri: reader.result});
-        }
-    }
-
-    const onFinish = async () => {
-        // const values = await form.validateFields();
-        // console.log(values);
-        // return;
-        try {
-            
-            const values = await form.validateFields();
-            if(record === null) {
-                if (image === null) return message.info("Debes seleccionar una imagen");
-                setLoading(true);
-                const response = await postFormData("/subcategory", {...values, image: image.file}, headerBearerFormData);
-                if(response.success) {
-                  // console.log(response)
-                  form.resetFields()
-                  setImage(null);
-                  message.success(response.message)
-                  setLoading(false);
-                  save();
-                  return;
-              }
-              throw response;
-            } else {
-              console.log(values)
-                const response = await postFormData("/subcategory/"+record.ID, {...values, image: image.file !== null ? image.file : record.image} ,headerBearerFormData);
-                console.log(response)
-                if(!response.success) {
-                    message.error(response.message)
-                } else {
-                    form.resetFields();
-                    setImage(false);
-                    save(response.data, 1)
-                    message.success(response.message)
-                }
-            }
-            setLoading(false)
-        } catch (error) {
-            message.error(error.message)
-            setLoading(false)
-            console.log(error)
-            
-        }
-    }
-
-    const toggleModalDelete = () => setVisiblem(!visiblem);
-
-    const deleteItem = async () => {
-      try {
-        const result = await get("/api/auth/subcategories/"+record.id, headerBearerFormData);
-        if(!result.success) {
-            message.error(result.message)
-        } else {
-            message.success(result.message);
-            setVisiblem(false);
-            save(record, 2)
-        }
-    } catch (error) {
-        message.error("Error al comunicarse con el servidor");
-    }
-    }
+const ModalFormTwo = () => {
+  const {
+    visible, 
+    loading, 
+    form, 
+    onFinish, 
+    onSelectedImage, 
+    image,
+    onDeleteItem,
+    visibleModal,
+    onToggleModalDelete,
+    onClearImage,
+    toggleModal,
+    record
+} = useContext(CategoriesContext)
 
     return (
       <Modal
@@ -124,11 +39,7 @@ const ModalFormTwo = ({visible, onCancel, save, record}) => {
         closable={false}
         footer={[
           <Button
-            onClick={() => {
-              // form.resetFields()
-              // setImage(null);
-              onCancel();
-            }}
+            onClick={() => toggleModal(null)}
             className="custom_button_form_cancel"
             type="link"
             danger
@@ -149,12 +60,12 @@ const ModalFormTwo = ({visible, onCancel, save, record}) => {
             <Row>
               <Col>
                 <Button
-                  onClick={toggleModalDelete}
+                  onClick={onToggleModalDelete}
                   className="btn_delete_data"
                   type="link"
                   danger
                 >
-                  Eliminar categoria <DeleteOutlined />
+                  Eliminar Subcategoria <DeleteOutlined />
                 </Button>
               </Col>
             </Row>
@@ -167,17 +78,24 @@ const ModalFormTwo = ({visible, onCancel, save, record}) => {
             <div className="preview_image">
               {image !== null ? <Image src={image.fileUri} /> : null}
               <label className="label_image" for="upload-photo">
-                <Input onChange={selectedImage} id="upload-photo" type="file" />
-                <Typography.Text>
-                  <PlusCircleFilled /> Foto de la categoría
-                </Typography.Text>
+                <Input onChange={onSelectedImage} id="upload-photo" type="file" />
+                {image === null ? <Typography.Text className='label_form'>
+                        <PlusCircleFilled style={{marginRight: 5}} /> 
+                            Foto de la categoría
+                        </Typography.Text> : null}
               </label>
+              {image !== null ? <Button 
+                    onClick={onClearImage}
+                    size='small'
+                    type='link'
+                    className='delete_image_form' 
+                    icon={<DeleteOutlined />} /> : null}
             </div>
           </Col>
           <Col span={16} style={{ paddingLeft: 8 }}>
             <Form layout="vertical" form={form} name="categories_form">
               {/* <SelectCustom /> */}
-              <SelectCategories name="categoryid" />
+              <SelectCategories name="category_id" />
               <Form.Item
                 name="name"
                 label="Nombre de la subcategoria"
@@ -211,8 +129,8 @@ const ModalFormTwo = ({visible, onCancel, save, record}) => {
         </Row>
         <Modal
           closable={false}
-          visible={visiblem}
-          onCancel={toggleModalDelete}
+          visible={visibleModal}
+          onCancel={onToggleModalDelete}
           footer={null}
         >
           <div className="modal_delete">
@@ -227,15 +145,16 @@ const ModalFormTwo = ({visible, onCancel, save, record}) => {
               <Button
                 className="custom_button_form_cancel"
                 type="link"
-                onClick={toggleModalDelete}
+                onClick={onToggleModalDelete}
                 danger
               >
                 Cancelar
               </Button>
               <Button
+              loading={loading}
                 className="custom_button_form"
                 type="primary"
-                onClick={deleteItem}
+                onClick={onDeleteItem}
               >
                 Eliminar
               </Button>

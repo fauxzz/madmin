@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout, Menu } from 'antd';
 import {PowerOffIcon} from '../components/customIcon'
 import HeaderPanel from '../components/headerPanel';
@@ -21,6 +21,10 @@ const Panel = () => {
     const [collapsed, setCollapsed] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    useEffect(() => {
+      console.log(location)
+    },[])
     // const {auth} = useAuth();
 
     // return auth === null && 

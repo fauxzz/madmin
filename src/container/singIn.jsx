@@ -1,5 +1,5 @@
-import { Button, Card, Checkbox, Col, Form, Input, message as msg, Row, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Button, Card, Checkbox, Col, Form, Input, message, message as msg, Row, Typography } from 'antd';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import HeaderPanel from '../components/headerPanel';
 // import { useAuth } from '../hooks/authContext';
@@ -7,8 +7,7 @@ import { post } from '../tools/api';
 import { TOKEN, USER_DATA } from '../tools/constants';
 import Cookies from '../tools/cookies';
 import { setStorage } from '../tools/storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginAction } from '../app/actions/authAction';
+import { useAuth } from '../hooks/authContext';
 
 const cookies = new Cookies();
 
@@ -16,54 +15,34 @@ const {Title, Text} = Typography;
 
 const SignIn = () => {
   const [form] = Form.useForm();
-  const dispatch = useDispatch()
-  // const loading = useSelector(state => state.user.loading);
-  const {data, success, message, token, loading} = useSelector(state => state.auth);
-  // const [loading, setLoading] = useState(false);
-  // const {auth, setAuth} = useAuth();
+  const [loading, setLoading] = useState(false);
+  const {auth, setAuth} = useAuth();
   const navigate = useNavigate();
   // const [error, setError] = useState('');
-
-  useEffect(() => {
-    if(message !== '') {
-      if(success && !loading) {
-        cookies.setCookie(TOKEN, token, 30);
-        setStorage(USER_DATA, data);
-        navigate("/app/categories-subcategories#categories");
-        msg.success(message)
-      } else {
-        msg.error(message)
-      }
-      console.log({data})
-    }
-  }, [dispatch])
 
   
 
   const onFinish = async (values) => {
-    console.log(values);
-    dispatch(loginAction(values))
-
-    // try {
-    //   setLoading(true);
-    //   const response = await post("/user/login", {...values});
-    //   console.log(response);
-    //   if (!response.success) {
-    //     message.error(response.message)
-    //   } else {
-    //     console.log(response)
-    //     delete response.data.password;
-    //     cookies.setCookie(TOKEN, response.token, 30);
-    //     setStorage(USER_DATA, response.data);
-    //     setAuth(response.data);
-    //     navigate("/app/categories-subcategories#categories");
-    //   }
-    //   setLoading(false)
-    // } catch (error) {
-    //   console.log(error)
-    //   message.error("Error al conectarse al servidor")
-    //   setLoading(false)
-    // }
+    try {
+      setLoading(true);
+      const response = await post("/user/login", {...values});
+      console.log(response);
+      if (!response.success) {
+        message.error(response.message)
+      } else {
+        console.log(response)
+        delete response.data.password;
+        cookies.setCookie(TOKEN, response.token, 30);
+        setStorage(USER_DATA, response.data);
+        setAuth(response.data);
+        navigate("/app/categories-subcategories#categories");
+      }
+      setLoading(false)
+    } catch (error) {
+      console.log(error)
+      message.error("Error al conectarse al servidor")
+      setLoading(false)
+    }
   }
 
     return (

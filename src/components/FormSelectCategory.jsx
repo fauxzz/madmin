@@ -15,7 +15,7 @@ const SelectCategories = ({name}) => {
     const initComponent = async () => {
         const response = await get("/category/all");
         setCategories(response.data)
-        setValue(response.data[0].ID)
+        setValue(response.data[0].id)
         console.log(response)
     }
 
@@ -32,8 +32,8 @@ const SelectCategories = ({name}) => {
       >
         {/* <Select.Option className="option_" value={1}>1 <Radio checked={category === 1} /></Select.Option> */}
         {categories.map((item) => (
-          <Option key={item.ID} value={item.ID}>
-            {item.name} <Radio checked={value === item.ID} />
+          <Option key={item.id} value={item.id}>
+            {item.name} <Radio checked={value === item.id} />
           </Option>
         ))}
       </Select>
