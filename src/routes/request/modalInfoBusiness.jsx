@@ -1,88 +1,68 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Col, Form, message, Modal, Radio, Row, Select, Space, Spin, Typography } from 'antd';
 import { get, headerBearer, postFormData } from '../../tools/api';
 import removeItem from "../../assets/removeitem.svg";
+import { RequestUsersContext } from '.';
+import { baseUri } from '../../tools/constants';
 
 const {Title, Text} = Typography;
 const {Option} = Select;
 
-const optionsWithDisabled = [
-    { label: 'Visible', value: 1 },
-    { label: 'Oculto', value: 0 },
-  ];
+const ModalInfoBusiness = () => {
+  const {
+    form,
+    visible,
+    toggleModal,
+    record,
+    loading,
+    onFinish
+  } = useContext(RequestUsersContext)
+  const [status, setStatus] = useState(0);
 
-const ModalInfoBusiness = ({visible, onCancel, save, record}) => {
-    const [form] = Form.useForm();
-    const [image, setImage] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [visiblem, setVisiblem] = useState(false);
-    const [estado, setEstado] = useState(0);
-
-    const [category, setCategory] = useState(0);
-    const [categories, setCategories] = useState([]);
+  const [image, setImage] = useState(null);
+  const [visiblem, setVisiblem] = useState(false);
+  const [category, setCategory] = useState(0);
+  const [categories, setCategories] = useState([]);
 
     useEffect(() => {
         initModal();
-        return () => {
-            form.resetFields();
-            setImage(null);
-        }
     }, [record]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const initModal = async () => {
-        setCategories(await get("/api/auth/categories", headerBearer));
-        if(record !== null) {
-            form.setFieldsValue(record);
-            setEstado(record.estado)
-            setCategory(record.categoria_id);
-        } else {
-            form.resetFields();
-            setImage(null);
-        }
+      if(record !== null) {
+        const response = await get("/category/all");
+        setCategories(response.data);
+        setCategory(record.category_id);
+        setStatus(record.status);
+      }
+        // setCategories(await get("/api/auth/categories", headerBearer));
+        // if(record !== null) {
+        //     form.setFieldsValue(record);
+        //     setEstado(record.estado)
+        //     setCategory(record.categoria_id);
+        // } else {
+        //     form.resetFields();
+        //     setImage(null);
+        // }
     }
 
-    const onFinish = async () => {
-        const values = await form.validateFields();
-        console.log(values);
-        try {
-            setLoading(true);
-            const values = await form.validateFields();
-            const response = await postFormData("/api/auth/update-negocio", {id: record.id, ...values}, headerBearer);
-            console.log(response);
-            if(response.success) {
-                message.success(response.message);
-                setLoading(false)
-                save({...record, ...values}, 2)
-                return;
-            }
-            throw response;
-            
-        } catch (error) {
-            console.log(error)
-            message.error(error.message);
-            setLoading(false);
-        }
+    // const toggleModalDelete = () => setVisiblem(!visiblem);
 
-    }
-
-    const toggleModalDelete = () => setVisiblem(!visiblem);
-
-    const deleteItem = async () => {
-        try {
-            const result = await get("/api/auth/categories/"+record.id, headerBearer);
-            if(!result.success) {
-                message.error(result.message)
-            } else {
-                message.success(result.message);
-                setVisiblem(false);
-                save(record, 2)
-            }
-        } catch (error) {
-            message.error("Error al comunicarse con el servidor");
-        }
-    }
+    // const deleteItem = async () => {
+    //     try {
+    //         const result = await get("/api/auth/categories/"+record.id, headerBearer);
+    //         if(!result.success) {
+    //             message.error(result.message)
+    //         } else {
+    //             message.success(result.message);
+    //             setVisiblem(false);
+    //             save(record, 2)
+    //         }
+    //     } catch (error) {
+    //         message.error("Error al comunicarse con el servidor");
+    //     }
+    // }
 
     // drago inf, minero, princesa, baby drago, mago elec, mago, horda de esb, tronco
 
@@ -94,11 +74,7 @@ const ModalInfoBusiness = ({visible, onCancel, save, record}) => {
         footer={[
             <div style={{ width: "100%", textAlign: 'center'}}>
             <Button
-              onClick={() => {
-                // form.resetFields()
-                // setImage(null);
-                onCancel();
-              }}
+              onClick={() => toggleModal(null)}
               className="custom_button_form_cancel"
               type="link"
               danger
@@ -109,7 +85,7 @@ const ModalInfoBusiness = ({visible, onCancel, save, record}) => {
             <Button
               loading={loading}
               onClick={onFinish}
-              className="custom_button_form"
+              className="eden_button"
               type="primary"
               key="create"
             >
@@ -129,29 +105,29 @@ const ModalInfoBusiness = ({visible, onCancel, save, record}) => {
             </Text>
             <Form layout="vertical" form={form} name="categories_form">
               <Form.Item
-                label="Estatus"
-                name="estado"
+                label="Estado"
+                name="status"
                 style={{ marginTop: 10 }}
               >
                 <Select
-                  onChange={(e) => setEstado(e)}
+                  onChange={(e) => setStatus(e)}
                   className="custom_select"
                   style={{ width: "80%" }}
                 >
-                  <Option value={2}>
-                    <Text>Pendiente</Text> <Radio checked={estado === 2 ? true : false} />
+                  <Option key={0} value={0}>
+                    <Text type='warning'>Pendiente</Text> <Radio checked={status === 0} />
                   </Option>
-                  <Option value={1}>
-                    <Text>Aceptado</Text> <Radio checked={estado === 1 ? true : false} />
+                  <Option key={1} value={1}>
+                    <Text type='success'>Aceptado</Text> <Radio checked={status === 1} />
                   </Option>
-                  <Option value={4}>
-                    Rechazado <Radio checked={estado === 4 ? true : false} />
+                  <Option key={4} value={4}>
+                    <Text type='danger'>Rechazado</Text> <Radio checked={status === 4} />
                   </Option>
                 </Select>
               </Form.Item>
 
               <Button
-              onClick={toggleModalDelete}
+              // onClick={toggleModalDelete}
               className="btn_delete_data"
               type="link"
               danger
@@ -162,7 +138,7 @@ const ModalInfoBusiness = ({visible, onCancel, save, record}) => {
 
                             {/* categoria */}
                             <Form.Item
-                name="categoria_id"
+                name="category_id"
                 className="form_horizontal"
                 label="Categoría del negocio"
               >
@@ -180,40 +156,40 @@ const ModalInfoBusiness = ({visible, onCancel, save, record}) => {
             </Form>
 
             <Text className="text_request_modal">
-              <span>Nombre completo</span> {record.nombre_cliente}
+              <span>Nombre completo:</span> {record.name}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
-              <span>Correo electrónico</span> {record.email}
+              <span>Correo electrónico:</span> {record.email}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
-              <span>Teléfono de contacto</span> {record.telefono}
+              <span>Teléfono de contacto:</span> {record.phone}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
-              <span>Cantidad de sucursales</span> {record.sucursales}
+              <span>Cantidad de sucursales:</span> {record.quantity_brach}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
-              <span>Permiso de uso</span> {record.documento.length > 1 ? <Button type="link">Ver documento</Button> : <Text>No hay archivo</Text>}
+              <span>Permiso de uso:</span> {record.license.length > 1 ? <Button type="link"><a href={`${baseUri}/public/business/${record.license}`} target="blank">Ver documento</a></Button> : <Text>No hay archivo</Text>}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
-              <span>Datos del vehículo</span>{" "}
-              {record.documento.length > 1 ? <Button type="link">Ver documento</Button> : <Text>No hay archivo</Text>}
+              <span>Datos del vehículo:</span>{" "}
+              {record.datavehicle.length > 1 ? <Button type="link"><a href={`${baseUri}/public/business/${record.license}`} target="blank">Ver documento</a></Button> : <Text>No hay archivo</Text>}
             </Text>
             <br />
             <Text className="text_request_modal">
-              <span>Número de registro de comerciantes</span> {record.numero_registro}
+              <span>Número de registro de comerciantes:</span> {record.numero_registro}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
-              <span>Dirección de la Tienda</span> {record.direccion}
+              <span>Dirección de la Tienda:</span> {record.address}
             </Text>{" "}
           </Col>
         </Row> : <Spin />}
-        <Modal
+        {/* <Modal
           closable={false}
           visible={visiblem}
           onCancel={toggleModalDelete}
@@ -245,7 +221,7 @@ const ModalInfoBusiness = ({visible, onCancel, save, record}) => {
               </Button>
             </div>
           </div>
-        </Modal>
+        </Modal> */}
       </Modal>
     );
 }

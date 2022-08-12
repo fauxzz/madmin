@@ -1,180 +1,166 @@
-import React, {Component} from 'react';
-import HeaderSection from '../../components/table/headerSection';
-import { Button, message, Table, Tabs, Typography } from 'antd';
+import { Button, Image, Table, Typography } from 'antd';
+import moment from 'moment';
+import React, { createContext } from 'react';
 import ActionTable from '../../components/actionTable';
-import { get, headerBearer } from '../../tools/api';
-import { DocIcon } from '../../components/customIcon';
-import { deleteFromArray, updateArray } from '../../tools/arrayTool';
-import ModalInfo from './modalInfo';
-
-const { TabPane } = Tabs;
+import { DocIcon, SquareEditIcon } from '../../components/customIcon';
+import HeaderSection from '../../components/table/headerSection';
+import Switch from '../../components/table/SwitchV2';
+import { baseUri } from '../../tools/constants';
+import { getStatusOrder } from './statusOrder';
+// import ModalForm from './modalForm';
+// import ModalFormTwo from './modalFormTwo';
+import useReporOrder from './useOrderReport';
 
 const {Text} = Typography;
-const dataSwitch = [
-    {path: "/categories", title: "Categoría"},
-    {path: "/subcategories", title: "Subcategorías"}
-]
+const actionData = [{name: "Todos", value: 2}, {name: "Entregado", value: 1}, {name: "Pendiente", value: 0}]
+const ReporOrderContext = createContext()
 
-class ReporOrder extends Component {
-    constructor(props) {
-        super(props);
-        this.state = { 
-            view: "category",
-            visible: true,
-            flag: true,
-            data: [],
-            searchData: [],
-            filterStatus: "2",
-            loading: false,
-            sourceData: null,
-            search: "",
-         };
-    }
+function ReporOrder() {
+    const {
+        search,
+        hash,
+        loading,
+        data,
+        routes,
+        visible,
+        record,
+        visibleModal,
+        image,
+        form,
+        status,
+        onDeleteItem,
+        onSearchFilter,
+        toggleModal,
+        onChangeHash,
+        onViewDataVisble,
+        onChagePage,
+        onFinish,
+        onSelectedImage,
+        onToggleModalDelete,
+        onClearImage
+    } = useReporOrder(true);
 
-    async componentDidMount() {
-        // this.getCategories();
-    }
+    // const onSave = (opt, record) => {
+    //     if(opt === 1) {
+    //         const info = data;
+    //         if (opt === 1) setData({...info, data: updateArray(record, data.data)});
+    //     } else {
+    //         fetchData();
+    //     }
+        
+    //     toggleModal(null);
+    // }
 
-    async getCategories (flag = true) {
-        // console.log(await get("/api/auth/all-repartidor?estado=4", headerBearer));
-
-        try {
-            if(flag) {
-                this.setState({loading: true});
-                const data = await get("/api/auth/all-repartidor?estado=2", headerBearer);
-                // console.log(data);
-                this.setState({flag: flag, data, loading: false});
-            } else {
-                this.setState({loading: true});
-                const data = await get("/api/auth/negocios?estado=2", headerBearer);
-                // console.log(data);
-                this.setState({flag: flag, data, loading: false});
-            }
-
-        } catch (error) {
-            message.error("Error interno del servidor");
-            this.setState({loading: false});
-        }
-    }
-
-    toggleModalInfo = (data = null) => this.setState({sourceData: data, visible: !this.state.visible});
-    toggleFlag = (val) => {
-        // Navigate({to: "/app/categories/1"})
-        // console.log(this.props.history);
-        this.getCategories(val);
-    };
-
-    columnsDelivers = [
+    const columnsReporOrder = [
         {
             title: 'N° pedido',
-            dataIndex: 'order',
-            key: 'order'
+            dataIndex: 'id',
+            key: 'id',
         },
         {
             title: 'Fecha',
-            dataIndex: 'date',
-            key: 'date'
+            dataIndex: 'CreatedAt',
+            key: 'CreatedAt',
+            render: text => moment(text).format("DD/MM/YYYY hh:mm:ss a")
         },
         {
-            title: 'Repartidor',
-            dataIndex: 'deliver',
-            key: 'deliver',
-        },
-        {
-            title: 'Negocio',
-            dataIndex: 'business',
-            key: 'business',
-        },
-        {
-            title: 'Cliente',
-            dataIndex: 'customer',
-            key: 'customer',
-        },
-        {
-            title: 'D. Cliente',
-            dataIndex: 'customer_d',
-            key: 'customer_d',
-        },
-        {
-            title: 'Total',
-            dataIndex: 'total',
-            key: 'total',
-        },
+          title: 'Repartidor',
+          dataIndex: 'deliver',
+          key: 'deliver',
+          render: (text, record) => record.deliver.name
+      },
+      {
+        title: 'Negocio',
+        dataIndex: 'business',
+        key: 'business',
+        render: (text, record) => record.busines.name_business
+    },
+    {
+      title: 'Cliente',
+      dataIndex: 'customer',
+      key: 'customer',
+      render: (text, record) => record.customer.name
+  },
+  {
+    title: 'D. cliente',
+    dataIndex: 'address',
+    key: 'address',
+    render: text => text.substring(0, 20)+"..."
+},
+{
+  title: 'Total',
+  dataIndex: 'total',
+  key: 'total',
+  render: (text, record) => ((record.total+record.deliver_cost)+record.tip).toFixed(2)
+},
         {
             title: 'Estado',
             dataIndex: 'status',
             key: 'status',
-            render: text => text ? <Text style={{color: "#219653"}}>Visible</Text> : <Text style={{color: "#EB5757"}}>Oculto</Text>
+            render: text => getStatusOrder(text)
         },
         {
-            title: 'Detalle',
+            title: 'Editar',
             dataIndex: 'id',
             key: 'id',
-            render: (text, records) => <Button onClick={() => this.toggleModalInfo(records)} type='link' icon={<DocIcon />} />
+            render: (text, records) => <Button style={{color: '#4F4F4F'}} onClick={() => toggleModal(records)} type='link' icon={<DocIcon />} />
         }
     ]
-
-    saveRecords = (record = null, opt) => {
-        console.log(record);
-        if (opt === 1) this.setState({data: updateArray(record, this.state.data)});
-        if (opt === 2) this.setState({data: deleteFromArray(record, this.state.data)});
-        this.toggleModalInfo(null);
-    }
-
-    searchDataFilter (value) {
-        this.setState({search: value})
-        if(value === '' || value === ' ') {
-            this.setState({searchData: []});
-            
-        } else {
-            let result;
-            if(this.state.flag) {
-                result = this.state.data.filter(item => item.nombre.toLowerCase().indexOf(value.toLowerCase()) !== -1)
-            } else {
-                result = this.state.data.filter(item => item.nombre_local.toLowerCase().indexOf(value.toLowerCase()) !== -1)
-            }
-            this.setState({searchData: result});
-            // console.log(result)
-        }
-    }
-
-    onFilterStatus (key) {
-        this.setState({filterStatus: key});
-        if(parseInt(key) === 2) {
-            this.setState({searchData: []});
-            // console.log(parseInt(key))
-        } else {
-            const result = this.state.data.filter(item => item.status === parseInt(key))
-            this.setState({searchData: result});
-            console.log(result)
-        }
-    }
-
-
-    render() {
-        const {data, loading, search, filterStatus, flag, searchData, visible, view, sourceData} = this.state;
-        return (
-           <div>
-               <HeaderSection showSearch title="Reporte de pedidos" value={search} onChange={(value) => this.searchDataFilter(value)} />
-               <ActionTable title="Generar reportes" showButton defaultActiveKey={filterStatus} onChange={(e) => this.onFilterStatus(e)} onClick={() => this.toggleModalForm(null)} />
-               <Table
-               style={{marginTop: 20}}
-               size="small"
-                columns={this.columnsDelivers}
-                rowKey={record => record.id}
-                dataSource={(search.length > 0) || (filterStatus !== "2") ? searchData : data}
-                // pagination={pagination}
-                scroll={{y: window.innerHeight * 0.4}}
-                loading={loading}
-                onChange={this.handleTableChange}
-            />
-            <ModalInfo save={this.saveRecords} visible={visible} record={sourceData} onCancel={this.toggleModalInfo} />
-            {/* {flag ? <ModalInfo save={this.saveRecords} visible={visible} record={sourceData} onCancel={this.toggleModalInfo} /> : 
-            <ModalInfoBusiness save={this.saveRecords} visible={visible} record={sourceData} onCancel={this.toggleModalInfo} />} */}
-            
-           </div> 
-        );
-    }
+    return (
+      <ReporOrderContext.Provider value={{
+        visibleModal,
+        image,
+        visible,
+        loading,
+        form,
+        record,
+        onDeleteItem,
+        onFinish,
+        onSelectedImage,
+        onToggleModalDelete,
+        onClearImage,
+        toggleModal
+      }}>
+        <div>
+          <HeaderSection showSearch title="Reporte de pedidos" onChange={(e) => onSearchFilter(e)} value={search} />
+          <ActionTable
+            onChange={onViewDataVisble}
+            onClick={() => toggleModal(null)}
+            defaultActiveKey={status}
+            data={actionData}
+            title={"Generar reportes"}
+            showButton
+          />
+          <Table
+            style={{ marginTop: 20 }}
+            size="small"
+            columns={columnsReporOrder}
+            rowKey={(row) => row.id}
+            dataSource={data.data}
+            pagination={{
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} elementos`,
+              total: data.total,
+              current: data.page,
+              pageSize: 10,
+              onChange: onChagePage,
+            }}
+            scroll={{ y: window.innerHeight * 0.4 }}
+            loading={loading}
+            // onChange={this.handleTableChange}
+          />
+          {/* {hash ? (
+            <ModalForm 
+            save={() => {}} 
+            record={record} 
+            image={image}
+            onCancel={() => toggleModal(null)} />
+          ) : (
+            <ModalFormTwo save={() => {}} record={record} visible={visible} onCancel={() => toggleModal(null)} />
+          )} */}
+        </div>
+      </ReporOrderContext.Provider>
+    );
 }
 
 export default ReporOrder;
+export {ReporOrderContext}

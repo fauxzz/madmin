@@ -1,112 +1,73 @@
 import { UserOutlined } from "@ant-design/icons";
 import { Avatar, Button, Col, Form, Input, InputNumber, message, Modal, Radio, Row, Select, Typography } from "antd";
 import React, { useEffect, useState } from "react";
+import { useContext } from "react";
 import { Link, useParams } from "react-router-dom";
+import { UsersContext } from ".";
 import { BookIconRed } from "../../components/customIcon";
 import HeaderSection from "../../components/table/headerSection";
 import { get, headerBearer, postFormData } from "../../tools/api";
+import { baseUri } from "../../tools/constants";
+import { docDniMap } from "../../tools/mapTools";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 const EditUser = () => {
-    const params = useParams();
-    const [form] = Form.useForm();
-    const [data, setData] = useState(null);
-    const [estado, setEstado] = useState(0);
-    const [transp, setTransp] = useState(0);
+  const {
+    form, 
+    toggleModal, 
+    record,
+    onFinish,
+    loading,
+    setLicense,
+    setDataVehicle
+  } = useContext(UsersContext);
+
+  const [status, setStatus] = useState(record.status);
+  const [transp, setTransp] = useState(record.transport);
+    
     const [visible, setVisible] = useState(false);
-    const [loading, setLoading] = useState(false)
-    const [files, setFiles] = useState({documento1: null, documento2: null})
-    useEffect(() => {
-        fetchData()
-    },[]);
-
-    const fetchData = async () => {
-        const result = await get("/api/auth/repartidor/"+params.id, headerBearer);
-        console.log(result)
-        form.setFieldsValue(result);
-        setEstado(result.estado);
-        setTransp(result.tipo_transporte);
-        setFiles({documento1: result.documento1, documento2: result.documento2})
-        setData(result);
-    }
-
-    const bannearDelivery =  async () => {
-        try {
-            setLoading(true);
-            const resp = await get("/api/auth/banr/"+params.id, headerBearer);
-            if(resp.success) {
-                message.success(data.email+" fue banneado de la plataforma");
-                setVisible(false);
-                setData({...data, estado: 3});
-                setLoading(false);
-                return;
-            }
-            throw resp;
-        } catch (error) {
-            message.error(error.message);
-            setLoading(false);
-        }
-        
-    }
-
-    const onFinish = async (values) => {
-        console.log(values);
-        try {
-          setLoading(true)
-          const resp = await postFormData("/api/auth/update-repartidor", {id: data.id, ...values}, headerBearer);
-          console.log(resp);
-          if(resp.success) {
-            message.success(resp.message);
-            setData(resp.data)
-            setLoading(false)
-          } else {
-            throw resp;
-          }
-          
-        } catch (error) {
-          console.log(error);
-          message.error(error.message);
-          setLoading(false);
-        }
-      }
 
     return (
       <div style={{ height: "100%",}}>
         <HeaderSection title="Datos del usuario" />
-        <input id="documento1" style={{display: 'none'}} type="file" />
-        <input id="documento2" style={{display: 'none'}} type="file" />
-        {data !== null ? <Form form={form} onFinish={onFinish} layout="vertical">
+        <input onChange={(e) => setLicense(e.target.files[0])} id="licence" style={{display: 'none'}} type="file" />
+        <input onChange={(e) => setDataVehicle(e.target.files[0])} id="datavehicle" style={{display: 'none'}} type="file" />
+        <Form form={form}
+         onFinish={onFinish} 
+        style={{paddingBottom: 40}}
+         layout="vertical">
           <Row style={{ marginTop: 20 }}>
             <Col xs={24} md={6}>
               <Title level={5}>Repartidor</Title>
-              <Avatar size={150} icon={<UserOutlined />} />
+              <Avatar className="frame_avatar" size={150} icon={<UserOutlined />} />
             </Col>
             <Col xs={25} md={18}>
-              <Text className="text_edit">
-                <Text className="text_strong">Nombre Completo: </Text>{data.nombre}</Text>
+              <Text className="text_inline">
+                <Text className="text_title_inline">Nombre Completo: </Text>{record.name}</Text>
               <Form.Item
                 label="Estatus"
-                name="estado"
+                name="status"
+                // initialValue={record.status}
                 style={{ marginTop: 10 }}
               >
-                <Select onChange={(e) => setEstado(e)} className="custom_select" style={{ width: "50%" }}>
-                <Option value={2}>
-                    <Text>Pendiente</Text> <Radio checked={estado === 2} />
+                <Select onChange={(e) => setStatus(e)} className="custom_select" style={{ width: "50%" }}>
+                <Option value={0}>
+                    <Text type="warning">Pendiente</Text> <Radio checked={status === 2} />
                   </Option>
                   <Option value={1}>
-                    <Text>Habilitado</Text> <Radio checked={estado === 1} />
+                    <Text type="success">Habilitado</Text> <Radio checked={status === 1} />
                   </Option>
-                  <Option value={0}>
-                    No Habilitado <Radio checked={estado === 0} />
+                  <Option value={2}>
+                    <Text type="danger">No Habilitado</Text> <Radio checked={status === 0} />
                   </Option>
                   <Option value={3}>
-                    Banneado <Radio checked={estado === 3} />
+                    <Text type="danger">Banneado</Text> <Radio checked={status === 3} />
                   </Option>
                 </Select>
               </Form.Item>
-              {estado !== 3 ? <Button
+              {status !== 3 ? <Button
                 type="link"
                 danger
                 onClick={() => setVisible(true)}
@@ -129,28 +90,28 @@ const EditUser = () => {
                 Usuario banneado
               </Button>}
             </Col>
-            <Col sm={24} md={14}>
-              <Text className="text_edit">
-                <Text className="text_strong">
+            <Col sm={24} md={14} style={{marginTop: 20}}>
+              <Text className="text_inline">
+                <Text className="text_title_inline">
                   Documento de identificación: </Text>
-                {getTextDocument(data.tipo_documento)}
+                {docDniMap[record.typedoc]}
               </Text>
               <br />
-              <Text className="text_edit">
-                <Text className="text_strong">Número de identificación: </Text>
-                {data.numero_documento}
+              <Text className="text_inline">
+                <Text className="text_title_inline">Número de identificación: </Text>
+                {record.dni}
               </Text>
               <br />
-              <Text className="text_edit">
-                <Text className="text_strong">Correo electrónico: </Text>
-                {data.correo}
+              <Text className="text_inline">
+                <Text className="text_title_inline">Correo electrónico: </Text>
+                {record.email}
               </Text>
               {/* <Text strong >Teléfono </Text> */}
-              <Form.Item className="form_horizontal" name="telefono" label="Teléfono">
+              <Form.Item style={{marginTop: 10}} className="form_horizontal" name="phone" label="Teléfono">
                 <InputNumber min={0} style={{width: '100%'}} className="custom_input" />
               </Form.Item>
               <Form.Item
-              name="tipo_transporte"
+              name="vehicle"
                 className="form_horizontal"
                 label="Medio de transporte"
               >
@@ -166,46 +127,47 @@ const EditUser = () => {
                   </Option>
                 </Select>
               </Form.Item>
-              { data.documento1.length < 1 ? <Form.Item className="form_horizontal" name="documento1" label="Licencia">
-                <Input onClick={() => document.getElementById("documento1").click()} readOnly className="custom_input" />
-              </Form.Item> : <Text className="text_edit">
-                <Text className="text_strong">Licencia </Text>
-                <Button type="link">Ver documento</Button>
+              {record.license.length < 1 ? <Form.Item className="form_horizontal" name="license" label="Licencia">
+                <Input onClick={() => document.getElementById("licence").click()} readOnly className="custom_input" />
+              </Form.Item> : <Text className="text_inline">
+                <Text className="text_title_inline">Licencia </Text>
+                <Button type="link"><a href={`${baseUri}/public/pdfs/${record.license}`} target="blank">Ver documento</a></Button>
               </Text>}
               <br />
-              {data.documento2 < 1 ? <Form.Item className="form_horizontal" name="documento2" label="Datos del Vehículo">
-                <Input onClick={() => document.getElementById("documento2").click()} readOnly className="custom_input" />
-              </Form.Item> : <Text className="text_edit">
-                <Text className="text_strong">Datos del Vehículo </Text>
-                <Button type="link">Ver documento</Button>
+              {record.datavehicle < 1 ? <Form.Item className="form_horizontal" name="datavehicle" label="Datos del Vehículo">
+                <Input onClick={() => document.getElementById("datavehicle").click()} readOnly className="custom_input" />
+              </Form.Item> : <Text className="text_inline">
+                <Text className="text_title_inline">Datos del Vehículo </Text>
+                <Button type="link"><a href={`${baseUri}/public/pdfs/${record.datavehicle}`} target="blank">Ver documento</a></Button>
               </Text>}
-              <br />
+              {/* <br />
               <Text className="text_edit">
-                <Text className="text_strong">Método de Pago: </Text> {getTextTypePayment(data.type_payment)}
+                <Text className="text_strong">Método de Pago: </Text> {getTextTypePayment(1)}
               </Text>
               <br />
               <Text className="text_edit">
                 <Text className="text_strong">Número de cuenta: </Text>
-                {data.number_bank}
+                {'numero banco'}
               </Text>
-              <br />
+              <br /> */}
             </Col>
             <Col span={24} style={{ textAlign: "center" }}>
-              <Link to="/app/users">
-                <Button
+            <Button
                   className="custom_button_form_cancel"
                   type="link"
                   danger
+                  onClick={() => toggleModal(null)}
                 >
                   Volver
                 </Button>
-              </Link>
-              <Button className="custom_button_form" htmlType="submit" type="primary">
+              <Button loading={loading}
+              className="custom_button_form" 
+              htmlType="submit" type="primary">
                 Guardar
               </Button>
             </Col>
           </Row>
-        </Form> : null}
+        </Form>
 
         <Modal
           closable={false}
@@ -225,7 +187,7 @@ const EditUser = () => {
                 className="custom_button_form"
                 type="primary"
                 loading={loading}
-                onClick={bannearDelivery}
+                // onClick={bannearDelivery}
               >
                 Agregar
               </Button>
@@ -243,16 +205,6 @@ const EditUser = () => {
 
       </div>
     );
-}
-
-function getTextDocument(val) {
-    switch (val) {
-        case 1:
-            return "Carnet de extranjería"
-    
-        default:
-            return "Documento de identidad"
-    }
 }
 
 function getTextTypePayment(val) {

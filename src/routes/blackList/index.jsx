@@ -1,216 +1,176 @@
-import React, {Component} from 'react';
-import HeaderSection from '../../components/table/headerSection';
-import { Button, Image, message, Table, Tabs, Typography } from 'antd';
-import SwitchPath, { SwitchItem } from '../../components/switch';
-import ActionTable from '../../components/actionTable';
-// import ModalForm from './modalForm';
-import { get, headerBearer, post } from '../../tools/api';
-// import { EditOutlined } from '@ant-design/icons';
-import { baseUri } from '../../tools/constants';
+import { Button, Image, Table, Typography } from 'antd';
+import React, { createContext } from 'react';
 import { SquareEditIcon } from '../../components/customIcon';
-import { addToArray, deleteFromArray, updateArray } from '../../tools/arrayTool';
-import { Link, Navigate } from 'react-router-dom';
+import HeaderSection from '../../components/table/headerSection';
+import Switch from '../../components/table/SwitchV2';
+import { baseUri } from '../../tools/constants';
+// import ModalForm from './modalForm';
 // import ModalFormTwo from './modalFormTwo';
-// import { Navigate, useLocation } from 'react-router-dom';
-const { TabPane } = Tabs;
+import useBlackList from './useBlackList';
 
 const {Text} = Typography;
-const dataSwitch = [
-    {path: "/categories", title: "Categoría"},
-    {path: "/subcategories", title: "Subcategorías"}
-]
 
-class BlackList extends Component {
-    constructor(props) {
-        super(props);
-        this.state = { 
-            view: "category",
-            visible: false,
-            flag: true,
-            data: [],
-            searchData: [],
-            filterStatus: "2",
-            loading: false,
-            sourceData: null,
-            search: "",
-         };
-    }
+const BlackListContext = createContext()
 
-    async componentDidMount() {
-        this.getCategories();
-    }
+function BlackList() {
+    const {
+        search,
+        hash,
+        loading,
+        data,
+        routes,
+        visible,
+        record,
+        visibleModal,
+        image,
+        form,
+        status,
+        onDeleteItem,
+        onSearchFilter,
+        toggleModal,
+        onChangeHash,
+        onViewDataVisble,
+        onChagePage,
+        onFinish,
+        onSelectedImage,
+        onToggleModalDelete,
+        onClearImage
+    } = useBlackList(true);
 
-    async getCategories (flag = true) {
-        try {
-            if(flag) {
-                this.setState({loading: true});
-                const data = await get("/api/auth/all-repartidor?estado=3", headerBearer);
-                // console.log(data);
-                this.setState({flag: flag, data, loading: false});
-            } else {
-                this.setState({loading: true});
-                const data = await get("/api/auth/negocios?estado=3", headerBearer);
-                // console.log(data);
-                this.setState({flag: flag, data, loading: false});
-            }
+    // const onSave = (opt, record) => {
+    //     if(opt === 1) {
+    //         const info = data;
+    //         if (opt === 1) setData({...info, data: updateArray(record, data.data)});
+    //     } else {
+    //         fetchData();
+    //     }
+        
+    //     toggleModal(null);
+    // }
 
-        } catch (error) {
-            message.error("Error interno del servidor");
-            this.setState({loading: false});
-        }
-    }
-
-    toggleModalForm = (data = null) => this.setState({sourceData: data, visible: !this.state.visible});
-    toggleFlag = (val) => {
-        // Navigate({to: "/app/categories/1"})
-        // console.log(this.props.history);
-        this.getCategories(val);
-    };
-
-    columnsDelivers = [
+    const columnsBlackList = [
         {
             title: 'Nombre',
-            dataIndex: 'nombre',
-            key: 'nombre'
+            dataIndex: 'name',
+            key: 'name'
         },
         {
-            title: 'Correo electrónico',
-            dataIndex: 'correo',
-            key: 'correo'
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
         },
         {
-            title: 'N° celular',
-            dataIndex: 'telefono',
-            key: 'telefono',
-        },
-        {
-            title: 'N° identidad',
-            dataIndex: 'numero_documento',
-            key: 'numero_documento',
-        },
-        {
-            title: 'Vehículo',
-            dataIndex: 'tipo_transporte',
-            key: 'tipo_transporte',
-        },
+          title: 'N° celular',
+          dataIndex: 'celular',
+          key: 'celular',
+      },
+      {
+        title: 'N° identidad',
+        dataIndex: 'dni',
+        key: 'dni',
+    },
+    {
+      title: 'Vehiculo',
+      dataIndex: 'vehicle',
+      key: 'vehicle',
+  },
         {
             title: 'Estado',
-            dataIndex: 'status',
-            key: 'status',
+            dataIndex: 'visible',
+            key: 'visible',
             render: text => text ? <Text style={{color: "#219653"}}>Visible</Text> : <Text style={{color: "#EB5757"}}>Oculto</Text>
         },
         {
             title: 'Editar',
             dataIndex: 'id',
             key: 'id',
-            render: (text, records) => <Link to={`/app/user/${text}`}><Button type='link' icon={<SquareEditIcon />} /></Link>
+            render: (text, records) => <Button style={{color: '#4F4F4F'}} onClick={() => toggleModal(records)} type='link' icon={<SquareEditIcon />} />
         }
     ]
 
-    columnsSubategories = [
+    const columnsSubategories = [
         {
             title: 'Nombre',
-            dataIndex: 'nombre_local',
-            key: 'nombre_local'
+            dataIndex: 'name',
+            key: 'name'
         },
         {
-            title: 'Correo electrónico',
+            title: 'Email',
             dataIndex: 'email',
             key: 'email'
         },
         {
             title: 'N° celular',
-            dataIndex: 'telefono',
-            key: 'telefono',
+            dataIndex: 'phone',
+            key: 'phone',
         },
         {
-            title: 'N° celular',
-            dataIndex: 'telefono',
-            key: 'telefono',
-        },
-        {
-            title: 'Dirección',
-            dataIndex: 'direccion',
-            key: 'direccion',
-        },
+          title: 'Dirección',
+          dataIndex: 'address',
+          key: 'address',
+      },
         {
             title: 'Estado',
-            dataIndex: 'estado',
-            key: 'estado',
+            dataIndex: 'visible',
+            key: 'visible',
             render: text => text ? <Text style={{color: "#219653"}}>Visible</Text> : <Text style={{color: "#EB5757"}}>Oculto</Text>
         },
         {
             title: 'Editar',
             dataIndex: 'id',
             key: 'id',
-            render: (text, records) => <Link to={`/app/business/${text}`}><Button type='link' icon={<SquareEditIcon />} /></Link>
+            render: (text, records) => <Button style={{color: '#4F4F4F'}} onClick={() => toggleModal(records)} type='link' icon={<SquareEditIcon />} />
         }
     ]
 
-    saveRecords = (record = null, opt) => {
-        console.log(record);
-        if(opt === 0) this.setState({data: addToArray(record, this.state.data)});
-        if (opt === 1) this.setState({data: updateArray(record, this.state.data)});
-        if (opt === 2) this.setState({data: deleteFromArray(record, this.state.data)});
-        this.toggleModalForm(null);
-    }
-
-    searchDataFilter (value) {
-        this.setState({search: value})
-        if(value === '' || value === ' ') {
-            this.setState({searchData: []});
-            
-        } else {
-            let result;
-            if(this.state.flag) {
-                result = this.state.data.filter(item => item.nombre.toLowerCase().indexOf(value.toLowerCase()) !== -1)
-            } else {
-                result = this.state.data.filter(item => item.nombre_local.toLowerCase().indexOf(value.toLowerCase()) !== -1)
-            }
-            this.setState({searchData: result});
-            // console.log(result)
-        }
-    }
-
-    onFilterStatus (key) {
-        this.setState({filterStatus: key});
-        if(parseInt(key) === 2) {
-            this.setState({searchData: []});
-            // console.log(parseInt(key))
-        } else {
-            const result = this.state.data.filter(item => item.status === parseInt(key))
-            this.setState({searchData: result});
-            console.log(result)
-        }
-    }
-
-
-    render() {
-        const {data, loading, search, filterStatus, flag, searchData, visible, view, sourceData} = this.state;
-        return (
-           <div>
-               <HeaderSection showSearch title="Lista negra" value={search} onChange={(value) => this.searchDataFilter(value)} />
-               <SwitchPath flag={flag}>
-                   <SwitchItem value={true} title="Repartidores" onClick={(e) => this.toggleFlag(e)} />
-                   <SwitchItem value={false} title="Negocios" onClick={(e) => this.toggleFlag(e)} />
-               </SwitchPath>
-               <ActionTable defaultActiveKey={filterStatus} onChange={(e) => this.onFilterStatus(e)} onClick={() => this.toggleModalForm(null)} />
-               <Table
-               style={{marginTop: 20}}
-               size="small"
-                columns={flag ? this.columnsDelivers : this.columnsSubategories}
-                rowKey={record => record.id}
-                dataSource={(search.length > 0) || (filterStatus !== "2") ? searchData : data}
-                // pagination={pagination}
-                scroll={{y: window.innerHeight * 0.4}}
-                loading={loading}
-                onChange={this.handleTableChange}
-            />
-            {/* {flag ? <ModalForm save={this.saveRecords} record={sourceData} visible={visible} onCancel={this.toggleModalForm} /> :  */}
-            {/* <ModalFormTwo save={this.saveRecords} record={sourceData} visible={visible} onCancel={this.toggleModalForm} /> } */}
-           </div> 
-        );
-    }
+    return (
+      <BlackListContext.Provider value={{
+        visibleModal,
+        image,
+        visible,
+        loading,
+        form,
+        record,
+        onDeleteItem,
+        onFinish,
+        onSelectedImage,
+        onToggleModalDelete,
+        onClearImage,
+        toggleModal
+      }}>
+        <div>
+          <HeaderSection showSearch title="Lista negra" onChange={(e) => onSearchFilter(e)} value={search} />
+          <Switch onClick={onChangeHash} data={routes} />
+          <Table
+            style={{ marginTop: 20 }}
+            size="small"
+            columns={hash ? columnsBlackList : columnsSubategories}
+            rowKey={(row) => row.id}
+            dataSource={data.data}
+            pagination={{
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} elementos`,
+              total: data.total,
+              current: data.page,
+              pageSize: 10,
+              onChange: onChagePage,
+            }}
+            scroll={{ y: window.innerHeight * 0.4 }}
+            loading={loading}
+            // onChange={this.handleTableChange}
+          />
+          {/* {hash ? (
+            <ModalForm 
+            save={() => {}} 
+            record={record} 
+            image={image}
+            onCancel={() => toggleModal(null)} />
+          ) : (
+            <ModalFormTwo save={() => {}} record={record} visible={visible} onCancel={() => toggleModal(null)} />
+          )} */}
+        </div>
+      </BlackListContext.Provider>
+    );
 }
 
 export default BlackList;
+export {BlackListContext}

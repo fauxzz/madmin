@@ -1,3 +1,5 @@
+import { statusAccount, vehiclesDeliver } from "./mapTools";
+
 export function RamdonCode() {
     let chars = "01234567890"
     let lon = 6;
@@ -8,3 +10,6 @@ export function RamdonCode() {
     }
     return code;
 }
+
+export const getStatusString = (value) => statusAccount[value];
+export const getVehiclesString = (value) => vehiclesDeliver[value];
