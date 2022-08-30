@@ -1,5 +1,6 @@
 import { Form, message } from "antd";
 import { useEffect, useState } from "react"
+import { useAuth } from "../../hooks/authContext";
 import { get, headerBearer} from "../../tools/api";
 import { baseUri } from "../../tools/constants";
 
@@ -8,6 +9,7 @@ const routes = [{title: "CategorÃ­a", hash: "#categories"}, {title: "SubcategorÃ
 
 export default function useClaims(flag = false) {
     const [form] = Form.useForm();
+    const {token} = useAuth();
 
     const [search, setSearch] = useState('');
     const [visible, setVisible] = useState(false);
@@ -35,7 +37,7 @@ export default function useClaims(flag = false) {
     //* get paginate categories
     function getClaims() {
         toggleLoading(async () =>
-        get(`${prefix}?status=0`, headerBearer).then(response => setData(response))
+        get(`${prefix}?status=0`, headerBearer(token)).then(response => setData(response))
         .catch(() => message.error("Error al obtener datos")));
     }
 
@@ -66,7 +68,7 @@ export default function useClaims(flag = false) {
     const onViewDataVisble = (value) => {
         setStatus(value);
         toggleLoading(async () => {
-            get(`${prefix}?status=${value}`, headerBearer)
+            get(`${prefix}?status=${value}`, headerBearer(token))
             .then(response => setData(response))
             .catch(() => message.error("Error al obtener datos"))
         })

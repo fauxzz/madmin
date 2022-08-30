@@ -1,10 +1,8 @@
-import { baseUri, prefixUri, TOKEN } from "./constants"
-import Cookies from "./cookies";
-const cookies = new Cookies();
+import { baseUri, prefixUri } from "./constants"
 
 const headerjson = {"Content-Type": "application/json"};
-export const headerBearer = {"Content-Type": "application/json", "Authorization": `Bearer ${cookies.getCookie(TOKEN)}`};
-export const headerBearerFormData = {"Authorization": `Bearer ${cookies.getCookie(TOKEN)}`};
+export const headerBearer = (token) => {return {"Content-Type": "application/json", "Authorization": `Bearer ${token}`}};
+export const headerBearerFormData = (token) => {return {"Authorization": `Bearer ${token}`}};
 
 
 export const post = async (path, data, headers = null) => await new Promise((resolve, reject) => {

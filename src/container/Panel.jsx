@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Layout, Menu } from 'antd';
 import {PowerOffIcon} from '../components/customIcon'
 import HeaderPanel from '../components/headerPanel';
@@ -13,6 +13,7 @@ import EditUser from '../routes/users/EditUser';
 import EditBusiness from '../routes/users/EditBusiness';
 import Notifications from './Notification';
 import arrowSide from '../assets/images/arrowSide.svg'
+import { useAuth } from '../hooks/authContext';
 
 const cookies = new Cookies();
 const { Content, Sider } = Layout;
@@ -21,20 +22,19 @@ const Panel = () => {
     const [collapsed, setCollapsed] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const {token, setToken, setAuth} = useAuth();
 
-    useEffect(() => {
-      console.log(location)
-    },[])
     // const {auth} = useAuth();
 
-    // return auth === null && 
-    // if(auth === null) {
-    //   navigate("/");
-    // }
+    if(token === '') {
+      navigate("/");
+    }
 
     const logout = () => {
       deleteStorage(USER_DATA);
       cookies.deleteCookie(TOKEN)
+      setAuth(null);
+      setToken(null);
       navigate("/");
     }
 

@@ -1,6 +1,7 @@
 import { Form, message } from "antd";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/authContext";
 import { get, headerBearer, headerBearerFormData, postFormData } from "../../tools/api";
 import { updateArray } from "../../tools/arrayTool";
 
@@ -14,6 +15,7 @@ export default function useRequestUsers(flag = false) {
     const location = useLocation();
     const navigate = useNavigate();
     const [form] = Form.useForm();
+    const {token} = useAuth();
 
     const [data, setData] = useState([]);
     const [search, setSearch] = useState('');
@@ -39,14 +41,14 @@ export default function useRequestUsers(flag = false) {
     //* get paginate delivers
     function getDelivers() {
         toggleLoading(async () =>
-        get(`${prefix[0]}?visible=${status}`, headerBearer).then(response => setData(response))
+        get(`${prefix[0]}?visible=${status}`, headerBearer(token)).then(response => setData(response))
         .catch(() => message.error("Error al obtener datos")));
     }
 
     //* get paginate business
     function getBusiness() {
         toggleLoading(async () =>
-        get(`${prefix[1]}?visible=${status}`, headerBearer).then(response => setData(response))
+        get(`${prefix[1]}?visible=${status}`, headerBearer(token)).then(response => setData(response))
         .catch(() => message.error("Error al obtener datos")));
     }
 
@@ -67,7 +69,7 @@ export default function useRequestUsers(flag = false) {
     function onSearchFilter(value) {
         setSearch(value);
         toggleLoading(async () => {
-            get(`${prefix[hash ? 0 : 1]}?q=${value}`, headerBearer)
+            get(`${prefix[hash ? 0 : 1]}?q=${value}`, headerBearer(token))
             .then(response => setData(response))
             .catch(() => message.error("Error al obtener datos"))
         })
@@ -89,7 +91,7 @@ export default function useRequestUsers(flag = false) {
     const onViewDataVisble = (value) => {
         setStatus(value);
         toggleLoading(async () => {
-            get(`${prefix[hash ? 0 : 1]}?visible=${value}`, headerBearer)
+            get(`${prefix[hash ? 0 : 1]}?visible=${value}`, headerBearer(token))
             .then(response => setData(response))
             .catch(() => message.error("Error al obtener datos"))
         })
@@ -105,7 +107,7 @@ export default function useRequestUsers(flag = false) {
             toggleLoading(async () => {
                 await postFormData(
                     `${prefix[hash ? 0 : 1]}/${record.id}`, values,
-                    headerBearerFormData
+                    headerBearerFormData(token)
                 ).then(response => {
                     if(!response.success) throw response
                     message.success(response.message);

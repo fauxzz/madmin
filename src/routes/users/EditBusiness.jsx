@@ -124,7 +124,7 @@ const EditBusiness = () => {
             <Col xs={25} md={18}>
               <Text className="text_inline">
                 <Text className="text_title_inline">Nombre del local: </Text>
-                {record.name_business}
+                {record.nameBusiness}
               </Text>
               <Form.Item
                 label="Estatus"
@@ -180,7 +180,7 @@ const EditBusiness = () => {
             <Col sm={24} md={14} style={{marginTop: 20}}>
               {/* categoria */}
               <Form.Item
-                name="category_id"
+                name="categoryId"
                 className="form_horizontal"
                 label="Categoría del negocio"
               >
@@ -223,7 +223,7 @@ const EditBusiness = () => {
               {/* cantidad de sucursales */}
               <Form.Item
                 className="form_horizontal"
-                name="quantity_brach"
+                name="quantityBrach"
                 label="Cantidad de sucursales"
               >
                 <InputNumber

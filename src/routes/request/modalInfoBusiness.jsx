@@ -101,7 +101,7 @@ const ModalInfoBusiness = () => {
             </Title>
             <Title level={4}>Negocio</Title>
             <Text className="text_request_modal">
-              <span>Nombre del local</span> {record.nombre_local}
+              <span>Nombre del local</span> {record.nameBusiness}
             </Text>
             <Form layout="vertical" form={form} name="categories_form">
               <Form.Item
@@ -138,7 +138,7 @@ const ModalInfoBusiness = () => {
 
                             {/* categoria */}
                             <Form.Item
-                name="category_id"
+                name="categoryId"
                 className="form_horizontal"
                 label="Categoría del negocio"
               >
@@ -168,7 +168,7 @@ const ModalInfoBusiness = () => {
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
-              <span>Cantidad de sucursales:</span> {record.quantity_brach}
+              <span>Cantidad de sucursales:</span> {record.quantityBrach}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">
@@ -181,7 +181,7 @@ const ModalInfoBusiness = () => {
             </Text>
             <br />
             <Text className="text_request_modal">
-              <span>Número de registro de comerciantes:</span> {record.numero_registro}
+              <span>Número de registro de comerciantes:</span> {record.merchantregistration}
             </Text>{" "}
             <br />
             <Text className="text_request_modal">

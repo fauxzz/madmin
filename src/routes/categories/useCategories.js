@@ -1,6 +1,7 @@
 import { Form, message } from "antd";
 import { useCallback, useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/authContext";
 import { get, headerBearer, headerBearerFormData, postFormData, remove } from "../../tools/api";
 import { addToArray, deleteFromArray, updateArray } from "../../tools/arrayTool";
 import { baseUri } from "../../tools/constants";
@@ -13,6 +14,7 @@ export default function useCategories(flag = false) {
     const location = useLocation();
     const navigate = useNavigate();
     const [form] = Form.useForm();
+    const {token} = useAuth()
 
     const [search, setSearch] = useState('');
     const [visible, setVisible] = useState(false);
@@ -113,13 +115,13 @@ export default function useCategories(flag = false) {
             toggleLoading(async () => {
                 const config = {
                     path: record !== null ? '/'+record.id : '',
-                    value: record !== null ? {...values, image: image.file !== null ? image.file : null} : {...values, image: image.file}
+                    value: record !== null ? {...values, image: image.file !== null ? image.file : null, name: values.name.toLowerCase()} : {...values, image: image.file, name: values.name.toLowerCase()}
                 }
                 console.log({record, config})
                 await postFormData(
                     `${prefix[hash ? 0 : 1] + config.path}`, 
                     config.value,
-                    headerBearerFormData
+                    headerBearerFormData(token)
                 ).then(response => {
                     if (!response.success) throw response;
                     form.resetFields();
@@ -163,7 +165,7 @@ export default function useCategories(flag = false) {
     //* delete Item
     const onDeleteItem = () => {
         toggleLoading(async () => {
-            await remove(`${prefix[hash ? 0 : 1]}/${record.id}`, headerBearer)
+            await remove(`${prefix[hash ? 0 : 1]}/${record.id}`, headerBearer(token))
             .then(response => {
                 console.log(response)
                 if (!response.success) throw response;

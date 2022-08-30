@@ -16,7 +16,7 @@ const {Title, Text} = Typography;
 const SignIn = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const {auth, setAuth} = useAuth();
+  const {setAuth, setToken} = useAuth();
   const navigate = useNavigate();
   // const [error, setError] = useState('');
 
@@ -35,6 +35,7 @@ const SignIn = () => {
         cookies.setCookie(TOKEN, response.token, 30);
         setStorage(USER_DATA, response.data);
         setAuth(response.data);
+        setToken(response.token);
         navigate("/app/categories-subcategories#categories");
       }
       setLoading(false)

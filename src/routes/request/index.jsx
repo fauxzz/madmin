@@ -81,8 +81,8 @@ export default function RequestUsers() {
     const columnsBusiness = [
         {
             title: 'Nombre',
-            dataIndex: 'name_business',
-            key: 'name_business'
+            dataIndex: 'nameBusiness',
+            key: 'nameBusiness'
         },
         {
             title: 'Correo electrónico',

@@ -53,7 +53,8 @@ function Categories() {
         {
             title: 'Nombre',
             dataIndex: 'name',
-            key: 'name'
+            key: 'name',
+            render: text => <span style={{textTransform: 'capitalize'}}>{text}</span>
         },
         {
             title: 'Imagen',
