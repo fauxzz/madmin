@@ -1,6 +1,7 @@
 import { Form, message } from "antd";
 import { useCallback, useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/authContext";
 import { get, headerBearer, headerBearerFormData, postFormData, remove } from "../../tools/api";
 import { addToArray, deleteFromArray, updateArray } from "../../tools/arrayTool";
 import { baseUri } from "../../tools/constants";
@@ -13,6 +14,7 @@ export default function useReporOrder(flag = false) {
     const location = useLocation();
     const navigate = useNavigate();
     const [form] = Form.useForm();
+    const {token} = useAuth();
 
     const [search, setSearch] = useState('');
     const [visible, setVisible] = useState(false);
@@ -40,7 +42,7 @@ export default function useReporOrder(flag = false) {
     //* get paginate categories
     function getCategories() {
         toggleLoading(async () =>
-        get(`${prefix[0]}`, headerBearer).then(response => setData(response))
+        get(`${prefix[0]}`, headerBearer(token)).then(response => setData(response))
         .catch(() => message.error("Error al obtener datos")));
     }
 
@@ -90,7 +92,7 @@ export default function useReporOrder(flag = false) {
     const onViewDataVisble = (value) => {
         setStatus(value);
         toggleLoading(async () => {
-            get(`${prefix[hash ? 0 : 1]}?visible=${value}`)
+            get(`${prefix[hash ? 0 : 1]}?visible=${value}`, headerBearer(token))
             .then(response => setData(response))
             .catch(() => message.error("Error al obtener datos"))
         })

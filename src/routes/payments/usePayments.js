@@ -1,6 +1,7 @@
 import { Form, message } from "antd";
 import { useCallback, useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/authContext";
 import { get, headerBearer, headerBearerFormData, postFormData, remove } from "../../tools/api";
 import { addToArray, deleteFromArray, updateArray } from "../../tools/arrayTool";
 import { baseUri } from "../../tools/constants";
@@ -13,16 +14,18 @@ export default function usePayments(flag = false) {
     const location = useLocation();
     const navigate = useNavigate();
     const [form] = Form.useForm();
+    const {token} = useAuth();
 
     const [search, setSearch] = useState('');
     const [visible, setVisible] = useState(false);
     const [hash, setHash] = useState(true);
     const [record, setRecord] = useState(null);
-    const [data, setData] = useState([]);
+    const [data, setData] = useState({rows: []});
     const [image, setImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [visibleModal, setVisibleModal] = useState(false);
     const [status, setStatus] = useState(2);
+    const [payTo, setPayTo] = useState(0);
 
     useEffect(() => {
         if (flag) onChangeHash(location.hash === '' ? routes[0].hash : location.hash)
@@ -38,16 +41,19 @@ export default function usePayments(flag = false) {
     };
 
     //* get paginate categories
-    function getCategories() {
+    function getPaymentCash() {
         toggleLoading(async () =>
-        get(`${prefix[0]}`, headerBearer).then(response => setData(response))
+        get(`${prefix[0]}?mode=0&status=1`, headerBearer(token)).then(response => {
+            console.log(response)
+            setData(response)
+        })
         .catch(() => message.error("Error al obtener datos")));
     }
 
     //* get paginate categories
-    function getSubcategories() {
+    function getPaymentOnline() {
         toggleLoading(async () =>
-        get(`${prefix[1]}`).then(response => setData(response))
+        get(`${prefix[1]}?mode=1&status=0`, headerBearer(token)).then(response => setData(response))
         .catch(() => message.error("Error al obtener datos")));
     }
 
@@ -79,10 +85,10 @@ export default function usePayments(flag = false) {
         navigate(value)
         if(routes[0].hash === value) {
             setHash(true);
-            getCategories()
+            getPaymentCash()
         } else {
             setHash(false);
-            getSubcategories();
+            getPaymentOnline();
         }
     }
 
@@ -90,7 +96,7 @@ export default function usePayments(flag = false) {
     const onViewDataVisble = (value) => {
         setStatus(value);
         toggleLoading(async () => {
-            get(`${prefix[hash ? 0 : 1]}?visible=${value}`)
+            get(`${prefix[hash ? 0 : 1]}?mode=0&status=${value}`, headerBearer(token))
             .then(response => setData(response))
             .catch(() => message.error("Error al obtener datos"))
         })
@@ -98,7 +104,7 @@ export default function usePayments(flag = false) {
 
     const onChagePage = async (value) => {
         toggleLoading(async () => {
-            get(`${prefix[hash ? 0 : 1]}?page=${value}${status !== 2 ? '&visible='+status : ''}`)
+            get(`${prefix[hash ? 0 : 1]}?page=${value}&mode=0&status=${status}`)
             .then(response => setData(response))
             .catch(() => message.error("Error al obtener datos"))
         })
@@ -207,7 +213,7 @@ export default function usePayments(flag = false) {
         visibleModal,
         form,
         status,
-        getCategories,
+        getPaymentCash,
         onSearchFilter,
         toggleModal,
         onChangeHash,

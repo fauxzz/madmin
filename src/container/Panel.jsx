@@ -14,6 +14,7 @@ import EditBusiness from '../routes/users/EditBusiness';
 import Notifications from './Notification';
 import arrowSide from '../assets/images/arrowSide.svg'
 import { useAuth } from '../hooks/authContext';
+import GenerarReports from '../routes/reportOrders/generaReports';
 
 const cookies = new Cookies();
 const { Content, Sider } = Layout;
@@ -85,6 +86,7 @@ const Panel = () => {
               <Route key="/user/edit-user" path="/user/:id" element={<EditUser />} />
               <Route key="/business" path="/business/:id" element={<EditBusiness />} />
               <Route key="/notifications" path="/notifications" element={<Notifications />} />
+              <Route key="/genera-reports" path="/genera-report" element={<GenerarReports />} />
             </Routes>
           </Content>
         </Layout>

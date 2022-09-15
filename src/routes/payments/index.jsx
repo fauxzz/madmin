@@ -1,16 +1,17 @@
-import { Button, Image, Table, Typography } from 'antd';
+import { Button, Table, Tabs, Typography } from 'antd';
 import moment from 'moment';
 import React, { createContext } from 'react';
 import ActionTable from '../../components/actionTable';
-import { SquareEditIcon } from '../../components/customIcon';
+import { DocIcon, SquareEditIcon } from '../../components/customIcon';
 import HeaderSection from '../../components/table/headerSection';
 import Switch from '../../components/table/SwitchV2';
-import { baseUri } from '../../tools/constants';
+import ModalForm from './modalForm';
+import { paymentStatusRender } from './status_render';
 // import ModalForm from './modalForm';
 import usePayments from './usePayments';
 
 const {Text} = Typography;
-const actionData = [{name: "Todos", value: 2}, {name: "Pagado", value: 1}, {name: "No Pagado", value: 0}]
+const actionData = [{name: "Pagado", value: 1}, {name: "No Pagado", value: 0}]
 const PaymentsContext = createContext()
 
 function Payments() {
@@ -50,52 +51,61 @@ function Payments() {
     // }
 
     const columnsPayments = [
-        {
-            title: 'Fecha',
-            dataIndex: 'CreatedAt',
-            key: 'CreatedAt',
-            render: text => moment(text).format("DD/MM/YYYY")
-        },
-        {
-          title: 'N° pedido',
-          dataIndex: 'id',
-          key: 'id',
-          render: (text, record) => record.order.id
+      {
+        title: "Fecha",
+        dataIndex: "CreatedAt",
+        key: "CreatedAt",
+        render: (text) => moment(text).format("DD/MM/YYYY"),
       },
       {
-        title: 'Nombre repartidor',
-        dataIndex: 'deliver',
-        key: 'deliver',
-        render: (text, record) => record.order.id
-    },
-    {
-      title: 'Ctvo',
-      dataIndex: 'proof',
-      key: 'proof'
-  },
-  {
-    title: 'Costo pedido',
-    dataIndex: 'total',
-    key: 'total'
-},
-{
-  title: 'Comisión',
-  dataIndex: 'Comisión repartidor',
-  key: 'Comisión repartidor'
-},
-        {
-            title: 'Estado',
-            dataIndex: 'visible',
-            key: 'visible',
-            render: text => text ? <Text style={{color: "#219653"}}>Visible</Text> : <Text style={{color: "#EB5757"}}>Oculto</Text>
-        },
-        {
-            title: 'Editar',
-            dataIndex: 'id',
-            key: 'id',
-            render: (text, records) => <Button style={{color: '#4F4F4F'}} onClick={() => toggleModal(records)} type='link' icon={<SquareEditIcon />} />
-        }
-    ]
+        title: "N° pedido",
+        dataIndex: "id",
+        key: "id",
+        render: (text, record) => record.idorder,
+      },
+      {
+        title: "Nombre repartidor",
+        dataIndex: "nameDeliver",
+        key: "nameDeliver",
+        render: (text, record) => record.nameDeliver,
+      },
+      {
+        title: "Ctvo",
+        dataIndex: "proof",
+        key: "proof",
+      },
+      {
+        title: "Costo pedido",
+        dataIndex: "total",
+        key: "total",
+        render: (text, records) => (records.total + records.deliverCost).toFixed(2)
+      },
+      {
+        title: "Comisión",
+        dataIndex: "feeDelivery",
+        key: "feeDelivery",
+        render: (text, records) => (records.deliverCost).toFixed(2)
+      },
+      {
+        title: "Estado",
+        dataIndex: "paidDa",
+        key: "paidDa",
+        render: (text) => paymentStatusRender(text)
+      },
+      {
+        title: "Detalle",
+        dataIndex: "id",
+        key: "id",
+        render: (text, records) => (
+          <Button
+            style={{ color: "#4F4F4F" }}
+            onClick={() => toggleModal(records)}
+            type="link"
+            icon={<DocIcon />}
+          />
+        ),
+      },
+    ];
 
     const columnsSubategories = [
         {
@@ -150,6 +160,10 @@ function Payments() {
         <div>
           <HeaderSection showSearch title="Pagos" onChange={(e) => onSearchFilter(e)} value={search} />
           <Switch onClick={onChangeHash} data={routes} />
+          <Tabs>
+            <Tabs.TabPane tab="Pagar a negocios" key={0} />
+            <Tabs.TabPane tab="Pagar a repartidores" key={1} />
+          </Tabs>
           <ActionTable
             onChange={onViewDataVisble}
             onClick={() => toggleModal(null)}
@@ -161,18 +175,19 @@ function Payments() {
             size="small"
             columns={hash ? columnsPayments : columnsSubategories}
             rowKey={(row) => row.id}
-            dataSource={data.data}
+            dataSource={data.rows}
             pagination={{
               showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} elementos`,
-              total: data.total,
+              total: data.total_rows,
               current: data.page,
-              pageSize: 10,
+              pageSize: data.limit,
               onChange: onChagePage,
             }}
             scroll={{ y: window.innerHeight * 0.4 }}
             loading={loading}
             // onChange={this.handleTableChange}
           />
+          <ModalForm />
           {/* {hash ? (
             <ModalForm 
             save={() => {}} 

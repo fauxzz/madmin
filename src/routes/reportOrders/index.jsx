@@ -1,6 +1,7 @@
 import { Button, Image, Table, Typography } from 'antd';
 import moment from 'moment';
 import React, { createContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ActionTable from '../../components/actionTable';
 import { DocIcon, SquareEditIcon } from '../../components/customIcon';
 import HeaderSection from '../../components/table/headerSection';
@@ -16,6 +17,7 @@ const actionData = [{name: "Todos", value: 2}, {name: "Entregado", value: 1}, {n
 const ReporOrderContext = createContext()
 
 function ReporOrder() {
+  const navigate = useNavigate();
     const {
         search,
         hash,
@@ -125,7 +127,7 @@ function ReporOrder() {
           <HeaderSection showSearch title="Reporte de pedidos" onChange={(e) => onSearchFilter(e)} value={search} />
           <ActionTable
             onChange={onViewDataVisble}
-            onClick={() => toggleModal(null)}
+            onClick={() => navigate("/app/genera-report")}
             defaultActiveKey={status}
             data={actionData}
             title={"Generar reportes"}
