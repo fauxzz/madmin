@@ -2,7 +2,8 @@ import { Form, message } from "antd";
 import { useEffect, useState } from "react";
 import { get, headerBearer, post } from "../tools/api";
 import { USER_DATA } from "../tools/constants";
-import { getStorage } from "../tools/storage";
+import { getStorage, setStorage } from "../tools/storage";
+import { useAuth } from "./authContext";
 
 // function updateArray(array, data) {
 //   return array.map(item => item.id === data.id ? data : item);
@@ -13,6 +14,7 @@ import { getStorage } from "../tools/storage";
 export default function useProfile({view = ''}) {
     const [form] = Form.useForm(); // form
     const [user, setUser] = useState(getStorage(USER_DATA)); // data user
+    const {token} = useAuth();
     const [visible, setVisible] = useState(false); // modal
     const [record, setrecord] = useState(null); // edit data
     const [banks, setBanks] = useState([]); // banks
@@ -34,7 +36,7 @@ export default function useProfile({view = ''}) {
 
     function getBanks() {
         setLoading(true);
-        get(`/bank?id=${user.ID}&user=1`, headerBearer)
+        get(`/bank?id=${user.ID}&user=1`, headerBearer(token))
         .then(response => {setBanks(response.data); setLoading(false);})
         .catch(err => {message.error("Error al obtener bancos"); setLoading(false);})
     }
@@ -45,7 +47,7 @@ export default function useProfile({view = ''}) {
         //   setLoading(true)
         //   const values = await form.validateFields();
         //   console.log(values)
-        //   const response = await post(`/user/update/${user._id}`, {...values, visible: true}, headerBearer);
+        //   const response = await post(`/user/update/${user.ID}`, {...values, visible: true}, headerBearer(token));
         //   if(response.success) {
         //     setLoading(false);
         //     setStorage(USER_DATA, response.data);
@@ -77,7 +79,7 @@ export default function useProfile({view = ''}) {
       setLoading(true)
       const values = await form.validateFields();
       if(record === null) {
-        const response = await post("/bank", {iduser: user.ID, type_user: 1,...values}, headerBearer)
+        const response = await post("/bank", {iduser: user.ID, type_user: 1,...values}, headerBearer(token))
         if(response.success) {
           message.success(response.message);
           setBanks([response.data].concat(banks));
@@ -87,7 +89,7 @@ export default function useProfile({view = ''}) {
         }
         throw response;
       } else {
-        const response = await post("/bank/"+record.id, {...record, ...values}, headerBearer);
+        const response = await post("/bank/"+record.id, {...record, ...values}, headerBearer(token));
         if(response.success) {
           message.success(response.message);
           // setBanks(banks.update())

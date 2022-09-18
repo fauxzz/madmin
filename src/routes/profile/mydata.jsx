@@ -41,9 +41,9 @@ const MyData = () => {
                   <Input type="email" className="custom_input" />
                 </Form.Item>
               </Col>
-              <Col span={16}>
+              {/* <Col span={16}>
               <Button loading={loading} htmlType='submit' type="primary" className="eden_button eden_button_padding">Guardar</Button>
-              </Col>
+              </Col> */}
             </Row>
           </Form>
         </Card>

@@ -1,5 +1,6 @@
 import { Button, Card, Col, Form, InputNumber, message, Row, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../hooks/authContext';
 import { get, headerBearer, post } from '../../tools/api';
 
 const {Title} = Typography;
@@ -8,12 +9,13 @@ const Feed = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const {token} = useAuth();
   useEffect(() => {
     fetchData()
   },[]);
 
   const fetchData = async () => {
-    const response = await get("/fee", headerBearer);
+    const response = await get("/fee", headerBearer(token));
     setData(response.data);
     console.log(response.data)
     form.setFieldsValue(response.data);
@@ -23,7 +25,7 @@ const Feed = () => {
     try {
       setLoading(true)
       const values = await form.validateFields();
-      const response = await post("/fee/"+data.id, {...values}, headerBearer);
+      const response = await post("/fee/"+data.id, {...values}, headerBearer(token));
       console.log(response)
       if(response.success) {
         message.success(response.message);

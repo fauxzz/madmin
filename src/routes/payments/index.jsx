@@ -160,10 +160,10 @@ function Payments() {
         <div>
           <HeaderSection showSearch title="Pagos" onChange={(e) => onSearchFilter(e)} value={search} />
           <Switch onClick={onChangeHash} data={routes} />
-          <Tabs>
+          {!hash && <Tabs>
             <Tabs.TabPane tab="Pagar a negocios" key={0} />
             <Tabs.TabPane tab="Pagar a repartidores" key={1} />
-          </Tabs>
+          </Tabs>}
           <ActionTable
             onChange={onViewDataVisble}
             onClick={() => toggleModal(null)}

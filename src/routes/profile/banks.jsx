@@ -1,8 +1,6 @@
-import { Button, Col, Form, Input, message, Modal, Radio, Row, Select, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Button, Col, Form, Input, Modal, Radio, Row, Select, Typography } from 'antd';
+import React, {useState } from 'react';
 import BankCard from '../../components/bankCard';
-import { useAuth } from '../../hooks/authContext';
-import { get, headerBearer, post, remove } from '../../tools/api';
 import { banksMap, TypeAccoutnBankMap, TypeDocument } from './jsonbank';
 import removeItem from "../../assets/removeitem.svg";
 import { getStorage } from '../../tools/storage';
@@ -14,10 +12,11 @@ const {Option} = Select;
 
 const Banks = () => {
   const {loading, banks, visible, record, saveBank, toggleModal, toggleModalDelete, onFinish, onDeleteBank, form} = useProfile({view: 'banks'});
+  
   // const [visible, setVisible] = useState(false);
   const [visibled, setVisibled] = useState(false);
   // const [data, setData] = useState([]);
-  const [user, setUser] = useState(getStorage(USER_DATA));
+  // const [user, setUser] = useState(getStorage(USER_DATA));
   const [selects, setSelects] = useState({bank: banksMap[0], typeBank: TypeAccoutnBankMap[0], typeDoc: TypeDocument[0]});
   // const [form] = Form.useForm();
 
